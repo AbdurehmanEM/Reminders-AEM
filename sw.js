@@ -1,6 +1,6 @@
 /* Service worker: offline shell + shows push notifications. */
-const CACHE = "reminders-v17";
-const SHELL = ["./", "index.html", "styles.css", "app.js", "config.js", "vendor/supabase.js", "alarm.ogg", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
+const CACHE = "reminders-v18";
+const SHELL = ["./", "index.html", "boot.js?v=24", "styles.css?v=24", "app.js?v=24", "config.js?v=24", "vendor/supabase.js", "alarm.ogg", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -18,9 +18,9 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: "no-cache" })
       .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return res; })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match("index.html")))
+      .catch(() => caches.match(e.request).then((r) => r || (e.request.mode === "navigate" ? caches.match("index.html") : undefined)))
   );
 });
 

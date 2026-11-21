@@ -1,0 +1,15 @@
+REMINDERS (web app) - Developed by Abdurehman E Mohammed
+
+Option A - GitHub link (works on any PC, no WAMP):
+  Open https://abdurehmanem.github.io/Reminders-AEM/ in Edge, click the Install icon
+  at the right end of the address bar, and allow notifications.
+
+Option B - your own laptop with WAMP:
+  1. Right-click Reminders-web.zip > Extract All > Extract.
+  2. Start WAMP (green icon).
+  3. Double-click INSTALL.bat in the extracted folder.
+     (If Windows blocks it, copy all files from the extracted folder into
+      C:\wamp64\www\Reminder yourself, replacing the old ones.)
+  4. Edge opens http://localhost/Reminder/ - click Install in the address bar.
+
+After installing: open "Sync laptop and phone", paste your sync code, sign in.
