@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file: 'unsafe-inline'; img-src 'self' file: data:; media-src 'self' file: data: blob:; connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; frame-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Reminders</title>
+  <meta name="author" content="Abdurehman E Mohammed">
+  <meta name="application-name" content="Reminders">
+  <meta name="theme-color" content="#db2777">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1><span class="logo">⏰</span> Reminders</h1>
+    <div id="account" hidden>
+      <span id="sync-dot" class="sync-dot" hidden></span>
+      <span id="sync-wait" class="sync-wait" hidden></span>
+      <span id="who"></span>
+      <button id="signout" class="link">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Sign-in -->
+    <section id="login" class="card c-pink" hidden>
+      <h2>Sign in</h2>
+      <p id="login-intro">Use the same email on your PC and your phone. Your reminders stay in sync.</p>
+      <form id="login-form">
+        <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+        <div id="password-wrap" hidden><input type="password" id="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6"></div>
+        <button type="submit" id="login-btn">Send me a sign-in code</button>
+      </form>
+      <form id="code-form" hidden>
+        <p>We emailed you a 6-digit code. Enter it here:</p>
+        <input type="text" id="code" inputmode="numeric" pattern="[0-9]{6,10}" placeholder="123456" required autocomplete="one-time-code">
+        <button type="submit">Sign in</button>
+      </form>
+      <p id="login-msg" class="msg"></p>
+      <button type="button" id="use-local" class="secondary" hidden>Use without an account (this device only)</button>
+    </section>
+
+    <!-- App -->
+    <section id="app" hidden>
+      <div id="notify-banner" class="card banner c-amber" hidden>
+        <p id="notify-text">Turn on notifications on this device so it can alert you.</p>
+        <button id="enable-push">Turn on notifications</button>
+      </div>
+
+      <form id="reminder-form" class="card c-pink">
+        <h2><span class="ico">✏️</span> <span id="form-title">New reminder</span></h2>
+        <input type="hidden" id="r-id">
+        <label>What
+          <input type="text" id="r-title" required maxlength="200" placeholder="e.g. Team meeting">
+        </label>
+        <label>Notes (optional)
+          <textarea id="r-notes" rows="2" maxlength="2000"></textarea>
+        </label>
+        <div class="when">
+          <span class="when-ico" aria-hidden="true">🕒</span>
+          <div class="when-body">
+            <div class="pill-row">
+              <label class="pill date-pill" title="Date">
+                <span id="date-text"></span>
+                <input type="date" id="r-date" required aria-label="Date">
+              </label>
+              <span id="mode-once" class="pill-group"><input type="time" id="r-time" class="pill" aria-label="Time"></span>
+              <span id="mode-range-times" class="pill-group" hidden>
+                <input type="time" id="r-from" class="pill" aria-label="From">
+                <span class="dash">–</span>
+                <input type="time" id="r-to" class="pill" aria-label="To">
+              </span>
+            </div>
+            <div class="pill-row">
+              <select id="r-mode" class="pill" aria-label="Ring">
+                <option value="once">Ring at one time</option>
+                <option value="several">Ring at several times</option>
+                <option value="range">Ring from one hour to another</option>
+              </select>
+              <span id="mode-range" class="pill-group" hidden>
+                <select id="r-every" class="pill" aria-label="Every">
+                  <option value="15">every 15 minutes</option>
+                  <option value="30">every 30 minutes</option>
+                  <option value="60" selected>every 1 hour</option>
+                  <option value="120">every 2 hours</option>
+                  <option value="180">every 3 hours</option>
+                  <option value="240">every 4 hours</option>
+                </select>
+              </span>
+            </div>
+            <p class="muted" id="range-preview"></p>
+            <div id="mode-several" class="times-box" hidden>
+              <div class="times-head">Ring at these times</div>
+              <div id="times-list"></div>
+              <button type="button" id="add-time" class="secondary">+ Add another time</button>
+            </div>
+            <div class="pill-row">
+              <select id="r-repeat" class="pill" aria-label="Repeat">
+                <option value="none">Does not repeat</option>
+                <option value="daily">Every day</option>
+                <option value="weekdays">Every weekday (Mon–Fri)</option>
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+                <option value="yearly">Every year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <fieldset id="alerts-fs">
+          <legend>Alert me (pick as many as you like)</legend>
+          <div class="alerts-grid">
+            <label class="check"><input type="checkbox" name="alert" value="0" checked> At the time</label>
+            <label class="check"><input type="checkbox" name="alert" value="5"> 5 min before</label>
+            <label class="check"><input type="checkbox" name="alert" value="10"> 10 min before</label>
+            <label class="check"><input type="checkbox" name="alert" value="15"> 15 min before</label>
+            <label class="check"><input type="checkbox" name="alert" value="30"> 30 min before</label>
+            <label class="check"><input type="checkbox" name="alert" value="60"> 1 hour before</label>
+            <label class="check"><input type="checkbox" name="alert" value="120"> 2 hours before</label>
+            <label class="check"><input type="checkbox" name="alert" value="1440"> 1 day before</label>
+            <label class="check"><input type="checkbox" name="alert" value="2880"> 2 days before</label>
+            <label class="check"><input type="checkbox" name="alert" value="10080"> 1 week before</label>
+          </div>
+        </fieldset>
+        <fieldset id="share-fs" hidden>
+          <legend>Also remind other people (optional)</legend>
+          <input type="text" id="r-share" placeholder="their email, e.g. friend@gmail.com (separate several with commas)" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="email">
+          <p class="muted small">They get this reminder in their own Reminders app and it rings there too. They sign in with that email, using your sync code.</p>
+        </fieldset>
+        <fieldset id="via-fs">
+          <legend>Remind me by</legend>
+          <label class="check" id="email-opt"><input type="checkbox" id="r-email" checked> Email</label>
+          <label class="check"><input type="checkbox" id="r-push" checked> Notification (PC and phone)</label>
+        </fieldset>
+        <div class="actions">
+          <button type="submit" id="save-btn">Save reminder</button>
+          <button type="button" id="cancel-edit" class="secondary" hidden>Cancel</button>
+        </div>
+      </form>
+
+      <div id="side">
+      <section class="card c-violet">
+        <h2><span class="ico">📅</span> Upcoming</h2>
+        <ul id="list"></ul>
+        <p id="empty" class="muted">No reminders yet.</p>
+      </section>
+
+      <section id="notes-card" class="card c-mint">
+        <div class="notes-head">
+          <h2><span class="ico">📝</span> Work plan &amp; notes</h2>
+          <button type="button" id="new-note">+ New note</button>
+        </div>
+        <p id="notes-hint" class="msg" hidden>Notes are saved on this device. To sync them, run <b>005_notes.sql</b> in Supabase once (see the setup folder).</p>
+        <div id="notes-list"></div>
+        <p id="notes-empty" class="muted">No notes yet. Tap <b>+ New note</b> to write a work plan or notes. Tap ⏰ on a task to make it a reminder.</p>
+      </section>
+
+      <details class="card c-sky">
+        <summary><span class="ico">🕘</span> Past reminders</summary>
+        <ul id="past"></ul>
+      </details>
+
+      <details id="test-card" class="card c-mint">
+        <summary><span class="ico">🔔</span> Check it works</summary>
+        <p class="muted" id="test-desc">Sends a test email and a test notification to every device where notifications are on.</p>
+        <button id="test-btn" class="secondary">Send me a test</button>
+        <p id="test-msg" class="msg"></p>
+      </details>
+
+      <details id="connect-card" class="card c-amber" hidden>
+        <summary><span class="ico">🔄</span> Sync laptop and phone</summary>
+        <p class="muted">Your reminders already work on this device. To share them between your laptop and phone, connect both to your free Supabase project.</p>
+        <ul class="steps">
+          <li><b>First device:</b> paste your Supabase <b>Project URL</b> and <b>publishable key</b>.</li>
+          <li><b>Other device:</b> paste the <b>sync code</b> the first device shows you (the key box can stay empty).</li>
+        </ul>
+        <form id="connect-form">
+          <input type="text" id="connect-url" placeholder="Sync code, or https://xxxx.supabase.co" required autocapitalize="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="connect-key" placeholder="Publishable (anon) key" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="submit">Connect</button>
+        </form>
+        <p id="connect-msg" class="msg"></p>
+      </details>
+
+      <details id="sync-card" class="card c-sky" hidden>
+        <summary><span class="ico">🔄</span> Sync is on</summary>
+        <p class="muted">Reminders you add, change or delete here show up on your other devices within a few seconds. To add your phone (or another computer), give it this sync code, then sign in there with the same email and password.</p>
+        <textarea id="sync-code" rows="3" readonly></textarea>
+        <div class="actions wrap">
+          <button type="button" id="sync-copy">Copy code</button>
+          <a id="sync-mail" class="button secondary" href="#">Email it to me</a>
+          <button type="button" id="sync-stop" class="secondary">Stop syncing</button>
+        </div>
+        <p id="sync-msg" class="msg"></p>
+      </details>
+      </div>
+    </section>
+  </main>
+  <footer class="credit">Developed by <b>Abdurehman E Mohammed</b></footer>
+
+  <!-- Ringing alarm: plays until Stop or Snooze -->
+  <div id="alarm" class="alarm" hidden role="alertdialog" aria-labelledby="alarm-title">
+    <div class="alarm-box">
+      <div class="alarm-bell">⏰</div>
+      <h2 id="alarm-title"></h2>
+      <p id="alarm-body"></p>
+      <button id="alarm-stop">Stop</button>
+      <button id="alarm-snooze" class="secondary">Snooze 10 min</button>
+    </div>
+  </div>
+  <audio id="alarm-audio" src="alarm.ogg" loop preload="auto"></audio>
+
+  <script src="vendor/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
